@@ -1,0 +1,17 @@
+{
+  "name": "ai-support",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
+  "prisma": {
+    "schema": "backend/prisma/schema.prisma",
+    "seed": "node backend/prisma/seed.js"
+  },
+  "scripts": {
+    "test": "npm run test --workspace backend",
+    "test:db": "npm run test:db --workspace backend",
+    "test:db:setup": "npm run test:db:setup --workspace backend"
+  }
+}

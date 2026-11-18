@@ -1,0 +1,166 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Role {
+  REQUESTER
+  SUPPORTER
+  ADMIN
+}
+
+enum RequestStatus {
+  SUBMITTED // 제출됨
+  ACCEPTED // 접수됨
+  FIRST_REVIEW // 1차 확인 대기(요청자)
+  FINAL_REVIEW // 최종 확인 대기(관리자)
+  REWORK // 재작업
+  COMPLETED // 완료
+}
+
+enum Urgency {
+  LOW
+  NORMAL
+  HIGH
+}
+
+enum RequestEventType {
+  SUBMIT
+  ACCEPT
+  CANCEL_ACCEPT
+  ASSIGN
+  WORK_SUBMIT
+  FIRST_APPROVE
+  FIRST_REJECT
+  FINAL_APPROVE
+  FINAL_REJECT
+  RESUBMIT
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  googleId  String   @unique
+  name      String
+  role      Role     @default(REQUESTER)
+  createdAt DateTime @default(now())
+
+  requestsCreated   Request[]          @relation("RequestRequester")
+  requestsAssigned  Request[]          @relation("RequestAssignee")
+  workLogs          WorkLog[]
+  events            RequestEvent[]
+  attachments       Attachment[]
+  pushSubscriptions PushSubscription[]
+}
+
+model SupportType {
+  id        String  @id @default(uuid())
+  name      String  @unique
+  active    Boolean @default(true)
+  sortOrder Int     @default(0)
+
+  requests Request[]
+}
+
+model Request {
+  id            String        @id @default(uuid())
+  requesterId   String
+  requester     User          @relation("RequestRequester", fields: [requesterId], references: [id])
+  assigneeId    String?
+  assignee      User?         @relation("RequestAssignee", fields: [assigneeId], references: [id])
+  supportTypeId String
+  supportType   SupportType   @relation(fields: [supportTypeId], references: [id])
+  title         String
+  content       String
+  department    String
+  contactName   String
+  contactPhone  String
+  interviewAt   DateTime
+  desiredDate   DateTime      @db.Date
+  urgency       Urgency       @default(NORMAL)
+  status        RequestStatus @default(SUBMITTED)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  completedAt   DateTime?
+
+  workLogs    WorkLog[]
+  events      RequestEvent[]
+  attachments Attachment[]
+  rating      Rating?
+
+  @@index([status])
+  @@index([assigneeId])
+  @@index([requesterId])
+}
+
+model WorkLog {
+  id          String   @id @default(uuid())
+  requestId   String
+  request     Request  @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  authorId    String
+  author      User     @relation(fields: [authorId], references: [id])
+  content     String
+  minutes     Int      @default(0)
+  round       Int      @default(1) // 제출 회차(재작업 재제출마다 +1)
+  submittedAt DateTime @default(now())
+
+  attachments Attachment[]
+
+  @@unique([requestId, round])
+}
+
+model RequestEvent {
+  id        String           @id @default(uuid())
+  requestId String
+  request   Request          @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  actorId   String
+  actor     User             @relation(fields: [actorId], references: [id])
+  type      RequestEventType
+  reason    String?
+  createdAt DateTime         @default(now())
+
+  @@index([requestId, createdAt])
+}
+
+model Attachment {
+  id          String   @id @default(uuid())
+  requestId   String
+  request     Request  @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  workLogId   String?
+  workLog     WorkLog? @relation(fields: [workLogId], references: [id], onDelete: SetNull)
+  uploaderId  String
+  uploader    User     @relation(fields: [uploaderId], references: [id])
+  storagePath String
+  fileName    String
+  size        Int
+  mime        String
+  createdAt   DateTime @default(now())
+
+  // 같은 저장소 객체를 두 번 등록할 수 없다(동시 등록도 막는다).
+  @@unique([storagePath])
+  @@index([requestId])
+}
+
+model Rating {
+  id        String   @id @default(uuid())
+  requestId String   @unique
+  request   Request  @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  score     Int // 1~5, 범위 검증은 API에서 한다
+  comment   String?
+  createdAt DateTime @default(now())
+}
+
+model PushSubscription {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+}
