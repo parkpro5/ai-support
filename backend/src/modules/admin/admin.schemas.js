@@ -3,6 +3,8 @@ const { z } = require('zod');
 const MAX_PAGE_SIZE = 100;
 const MAX_TYPE_NAME_LENGTH = 50;
 const MAX_SORT_ORDER = 9999;
+/** 한 번에 등록할 수 있는 이메일 수. */
+const MAX_INVITE_EMAILS = 50;
 
 const listUsersQuerySchema = z.object({
   role: z.enum(['REQUESTER', 'SUPPORTER', 'ADMIN'], { errorMap: () => ({ message: '알 수 없는 역할입니다' }) }).optional(),
@@ -22,6 +24,26 @@ const updateUserRoleSchema = z.object({
   role: z.enum(['REQUESTER', 'SUPPORTER'], {
     errorMap: () => ({ message: '요청자 또는 지원자만 지정할 수 있습니다' }),
   }),
+});
+
+/**
+ * 지원자로 등록할 이메일 목록. 앞뒤 공백을 지우고 소문자로 맞추며, 같은 이메일이 여러 번 있으면 하나로 합친다.
+ * 형식이 틀린 이메일이 하나라도 있으면 전체를 거부하고 어느 항목이 틀렸는지 알려 준다(일부만 등록되는 혼란을 막는다).
+ */
+const registerSupportersSchema = z.object({
+  emails: z
+    .array(
+      z
+        .string({ invalid_type_error: '이메일은 글자로 입력해 주세요' })
+        .trim()
+        .toLowerCase()
+        .max(254, '이메일이 너무 깁니다')
+        .email('이메일 형식이 올바르지 않습니다'),
+      { required_error: '이메일을 입력해 주세요', invalid_type_error: '이메일 목록이 올바르지 않습니다' }
+    )
+    .min(1, '이메일을 한 개 이상 입력해 주세요')
+    .max(MAX_INVITE_EMAILS, `한 번에 ${MAX_INVITE_EMAILS}개까지 등록할 수 있습니다`)
+    .transform((emails) => [...new Set(emails)]),
 });
 
 const typeName = z
@@ -49,7 +71,9 @@ const updateSupportTypeSchema = z
 module.exports = {
   listUsersQuerySchema,
   updateUserRoleSchema,
+  registerSupportersSchema,
   createSupportTypeSchema,
   updateSupportTypeSchema,
   MAX_TYPE_NAME_LENGTH,
+  MAX_INVITE_EMAILS,
 };

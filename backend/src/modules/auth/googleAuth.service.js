@@ -36,7 +36,7 @@ function buildLoginAuthUrl() {
 
 /**
  * @param {string} code Google이 콜백으로 준 인가 코드
- * @returns {Promise<{ googleId: string, email: string, name: string }>}
+ * @returns {Promise<{ googleId: string, email: string, name: string, emailVerified: boolean }>}
  */
 async function exchangeLoginCode(code) {
   const client = createLoginClient();
@@ -50,6 +50,8 @@ async function exchangeLoginCode(code) {
     googleId: profile.sub,
     email: profile.email,
     name: profile.name || profile.email,
+    // Google이 이메일 소유를 확인했는지. 지원자 사전 등록은 확인된 이메일에만 적용한다.
+    emailVerified: profile.email_verified === true,
   };
 }
 

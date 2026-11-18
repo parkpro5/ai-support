@@ -58,6 +58,14 @@ model User {
   pushSubscriptions PushSubscription[]
 }
 
+/// 관리자가 이메일로 미리 등록해 둔 지원자. 그 이메일로 처음 로그인하면 지원자로 시작하고 이 행은 지워진다.
+/// (이미 가입한 사람은 등록하는 즉시 역할이 바뀌므로 여기에 남지 않는다.)
+model SupporterInvite {
+  id        String   @id @default(uuid())
+  email     String   @unique // 소문자로 저장한다
+  createdAt DateTime @default(now())
+}
+
 model SupportType {
   id        String  @id @default(uuid())
   name      String  @unique

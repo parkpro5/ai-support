@@ -1,5 +1,6 @@
 const prisma = require('../../config/prismaClient');
 const ApiError = require('../../utils/ApiError');
+const env = require('../../config/env');
 const { STATUS } = require('../requests/stateMachine');
 
 const USER_SELECT = { id: true, email: true, name: true, role: true, createdAt: true };
@@ -61,6 +62,80 @@ async function updateUserRole(id, role) {
     }
     return tx.user.findUnique({ where: { id }, select: USER_SELECT });
   });
+}
+
+// ── 지원자 이메일 등록 ───────────────────────────────────────
+
+/** 등록 결과 종류. 화면이 이 값으로 안내 문구를 고른다. */
+const REGISTER_RESULT = {
+  PROMOTED: 'PROMOTED', // 이미 가입한 요청자 → 바로 지원자로 바꿈
+  INVITED: 'INVITED', // 아직 가입 전 → 첫 로그인 때 지원자로 시작하도록 대기 등록
+  ALREADY_SUPPORTER: 'ALREADY_SUPPORTER',
+  ALREADY_INVITED: 'ALREADY_INVITED',
+  ADMIN: 'ADMIN', // 관리자 계정·관리자 이메일은 지원자로 등록할 수 없음
+};
+
+/** 가입한 사용자를 이메일로 찾는다(대소문자 무시). */
+const findUserByEmail = (email) =>
+  prisma.user.findFirst({ where: { email: { equals: email, mode: 'insensitive' } }, select: USER_SELECT });
+
+/** 이미 가입한 사용자를 지원자로 바꾸고, 같은 이메일의 대기 등록은 정리한다. */
+async function promoteExistingUser(user, email) {
+  if (user.role === 'ADMIN') return REGISTER_RESULT.ADMIN;
+  await prisma.supporterInvite.deleteMany({ where: { email } });
+  if (user.role === 'SUPPORTER') return REGISTER_RESULT.ALREADY_SUPPORTER;
+  await updateUserRole(user.id, 'SUPPORTER');
+  return REGISTER_RESULT.PROMOTED;
+}
+
+async function registerOne(email) {
+  // 관리자 이메일은 처음 로그인하면 관리자가 되므로 지원자로 등록하지 않는다.
+  if (env.adminEmailList.includes(email)) return REGISTER_RESULT.ADMIN;
+
+  const user = await findUserByEmail(email);
+  if (user) return promoteExistingUser(user, email);
+
+  let created = true;
+  try {
+    await prisma.supporterInvite.create({ data: { email } });
+  } catch (err) {
+    if (!isUniqueViolation(err)) throw err;
+    created = false;
+  }
+
+  // 대기 등록을 만드는 사이에 그 사람이 처음 로그인해 요청자로 가입했을 수 있다. 그러면 바로 지원자로 바꾼다.
+  const joined = await findUserByEmail(email);
+  if (joined) return promoteExistingUser(joined, email);
+
+  return created ? REGISTER_RESULT.INVITED : REGISTER_RESULT.ALREADY_INVITED;
+}
+
+/**
+ * 이메일로 지원자를 미리 등록한다. 이미 가입한 사람은 바로 지원자가 되고,
+ * 아직 가입하지 않은 사람은 그 이메일로 처음 로그인할 때 지원자로 시작한다.
+ * 이메일마다 결과를 따로 돌려준다(관리자 이메일처럼 등록할 수 없는 항목이 있어도 나머지는 처리한다).
+ * @param {string[]} emails 소문자로 정리되고 중복이 없는 이메일 목록
+ */
+async function registerSupporters(emails) {
+  const results = [];
+  for (const email of emails) {
+    results.push({ email, result: await registerOne(email) });
+  }
+  return { results };
+}
+
+/** 아직 로그인하지 않아 대기 중인 등록 목록(최근 등록 순). */
+async function listSupporterInvites() {
+  return prisma.supporterInvite.findMany({
+    select: { id: true, email: true, createdAt: true },
+    orderBy: [{ createdAt: 'desc' }, { id: 'asc' }],
+  });
+}
+
+/** 대기 중인 등록을 취소한다(이메일을 잘못 입력했을 때). */
+async function deleteSupporterInvite(id) {
+  const { count } = await prisma.supporterInvite.deleteMany({ where: { id } });
+  if (count !== 1) throw new ApiError(404, '대기 중인 등록을 찾을 수 없습니다');
 }
 
 // ── 지원 유형 ────────────────────────────────────────────────
@@ -130,8 +205,12 @@ async function updateSupportType(id, data) {
 }
 
 module.exports = {
+  REGISTER_RESULT,
   listUsers,
   updateUserRole,
+  registerSupporters,
+  listSupporterInvites,
+  deleteSupporterInvite,
   listSupportTypes,
   createSupportType,
   updateSupportType,

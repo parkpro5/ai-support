@@ -1,8 +1,11 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
   createSupportType,
+  deleteSupporterInvite,
   fetchAllSupportTypes,
+  fetchSupporterInvites,
   fetchUsers,
+  registerSupporters,
   setUserRole,
   updateSupportType,
 } from '../api/admin.api';
@@ -91,6 +94,178 @@ function RoleBadge({ role }) {
   );
 }
 
+// ── 지원자 이메일 등록 ─────────────────────────────────────
+
+/** 입력칸의 글을 이메일 목록으로 나눈다. 쉼표·세미콜론·공백·줄바꿈 어느 것으로 구분해도 된다. */
+function splitEmails(text) {
+  return text.split(/[\s,;]+/).filter(Boolean);
+}
+
+/** 등록 결과를 사람이 읽을 문장 목록으로 바꾼다. 해당하는 항목이 없는 종류는 나오지 않는다. */
+function summarizeResults(results) {
+  const pick = (kind) => results.filter((row) => row.result === kind).map((row) => row.email);
+  const lines = [];
+  const promoted = pick('PROMOTED');
+  const invited = pick('INVITED');
+  const already = pick('ALREADY_SUPPORTER');
+  const waiting = pick('ALREADY_INVITED');
+  const admins = pick('ADMIN');
+  if (promoted.length) lines.push(`${promoted.length}명을 바로 지원자로 바꿨습니다: ${promoted.join(', ')}`);
+  if (invited.length) lines.push(`${invited.length}명을 등록했습니다. 그 이메일로 처음 로그인하면 지원자로 시작합니다: ${invited.join(', ')}`);
+  if (already.length) lines.push(`이미 지원자입니다: ${already.join(', ')}`);
+  if (waiting.length) lines.push(`이미 등록되어 로그인을 기다리는 중입니다: ${waiting.join(', ')}`);
+  if (admins.length) lines.push(`관리자 계정이라 지원자로 등록하지 않았습니다: ${admins.join(', ')}`);
+  return lines;
+}
+
+function SupporterRegistration({ onChanged }) {
+  const [text, setText] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState(null);
+  const [summary, setSummary] = useState(null);
+  const [invites, setInvites] = useState(null);
+  const [inviteError, setInviteError] = useState(null);
+  const [busyId, setBusyId] = useState(null);
+
+  const loadInvites = useCallback(
+    () =>
+      fetchSupporterInvites()
+        .then((rows) => {
+          setInvites(rows);
+          setInviteError(null);
+        })
+        .catch((err) => setInviteError(parseApiError(err).message)),
+    []
+  );
+
+  useEffect(() => {
+    loadInvites();
+  }, [loadInvites]);
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    const emails = splitEmails(text);
+    if (emails.length === 0) {
+      setError('이메일을 한 개 이상 입력해 주세요');
+      return;
+    }
+    setSubmitting(true);
+    setError(null);
+    setSummary(null);
+    try {
+      const { results } = await registerSupporters(emails);
+      setSummary(summarizeResults(results));
+      setText('');
+    } catch (err) {
+      const { message, details } = parseApiError(err);
+      // 서버가 알려 준 "emails.<번호>" 항목으로 어느 이메일이 틀렸는지 찾아 보여 준다.
+      const wrong = Object.keys(details)
+        .map((key) => /^emails\.(\d+)$/.exec(key))
+        .filter(Boolean)
+        .map((match) => emails[Number(match[1])])
+        .filter(Boolean);
+      setError(wrong.length > 0 ? `이메일 형식이 올바르지 않습니다: ${wrong.join(', ')}` : message);
+    } finally {
+      setSubmitting(false);
+      loadInvites();
+      onChanged();
+    }
+  }
+
+  async function handleCancel(invite) {
+    setBusyId(invite.id);
+    try {
+      await deleteSupporterInvite(invite.id);
+    } catch (err) {
+      setInviteError(parseApiError(err).message);
+    } finally {
+      setBusyId(null);
+      loadInvites();
+    }
+  }
+
+  return (
+    <section aria-label="지원자 이메일 등록" style={{ ...cardStyle, marginBottom: 'var(--spacing-4)' }}>
+      <h2 style={{ fontSize: '1.05rem', margin: '0 0 var(--spacing-1)' }}>지원자 이메일로 등록</h2>
+      <p style={{ margin: '0 0 var(--spacing-3)', color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>
+        아직 로그인하지 않은 학생도 등록할 수 있습니다. 그 이메일로 <strong>처음 로그인하면 지원자로 시작</strong>하고, 이미 가입한 사람은 바로 지원자가
+        됩니다. 여러 명은 쉼표, 공백, 줄바꿈으로 구분해 한 번에 넣으세요.
+      </p>
+
+      <form onSubmit={handleSubmit} noValidate>
+        <label htmlFor="supporter-emails" style={{ display: 'block', fontWeight: 600, marginBottom: 'var(--spacing-1)' }}>
+          이메일 (Google 계정)
+        </label>
+        <textarea
+          id="supporter-emails"
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          rows={3}
+          placeholder={'student1@gmail.com\nstudent2@gmail.com'}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={error ? 'supporter-emails-error' : undefined}
+          style={{ ...inputStyle, width: '100%', resize: 'vertical', fontFamily: 'inherit' }}
+        />
+        {error && (
+          <p id="supporter-emails-error" role="alert" style={{ margin: 'var(--spacing-1) 0 0', color: 'var(--color-danger)', fontSize: '0.9rem' }}>
+            {error}
+          </p>
+        )}
+        <div style={{ marginTop: 'var(--spacing-2)' }}>
+          <Button type="submit" loading={submitting}>
+            지원자로 등록
+          </Button>
+        </div>
+      </form>
+
+      {summary && summary.length > 0 && (
+        <ul role="status" style={{ margin: 'var(--spacing-3) 0 0', paddingLeft: '1.2em', fontSize: '0.9rem' }}>
+          {summary.map((line) => (
+            <li key={line} style={{ wordBreak: 'break-all' }}>
+              {line}
+            </li>
+          ))}
+        </ul>
+      )}
+
+      <h3 style={{ fontSize: '0.95rem', margin: 'var(--spacing-4) 0 var(--spacing-1)' }}>
+        로그인 대기 중{invites ? ` (${invites.length}명)` : ''}
+      </h3>
+      {inviteError && (
+        <p role="alert" style={{ margin: 0, color: 'var(--color-danger)', fontSize: '0.9rem' }}>
+          {inviteError}
+        </p>
+      )}
+      {invites && invites.length === 0 && (
+        <p style={{ margin: 0, color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>
+          대기 중인 등록이 없습니다. 등록한 사람이 처음 로그인하면 이 목록에서 사라지고 사용자 목록에 지원자로 나타납니다.
+        </p>
+      )}
+      {invites && invites.length > 0 && (
+        <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: 'var(--spacing-1)' }}>
+          {invites.map((invite) => (
+            <li
+              key={invite.id}
+              style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 'var(--spacing-2)', flexWrap: 'wrap' }}
+            >
+              <span style={{ wordBreak: 'break-all' }}>{invite.email}</span>
+              <Button
+                type="button"
+                variant="ghost"
+                loading={busyId === invite.id}
+                aria-label={`${invite.email} 등록 취소`}
+                onClick={() => handleCancel(invite)}
+              >
+                취소
+              </Button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  );
+}
+
 // ── 사용자 ─────────────────────────────────────────────────
 
 function UsersTab() {
@@ -147,6 +322,8 @@ function UsersTab() {
 
   return (
     <div>
+      <SupporterRegistration onChanged={() => load({ silent: true })} />
+
       <form onSubmit={handleSearch} style={{ display: 'flex', gap: 'var(--spacing-2)', flexWrap: 'wrap', marginBottom: 'var(--spacing-3)' }}>
         <label htmlFor="user-role-filter" className="sr-only">
           역할

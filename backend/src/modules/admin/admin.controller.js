@@ -9,6 +9,19 @@ const updateUserRole = asyncHandler(async (req, res) => {
   res.json(await service.updateUserRole(req.params.id, req.body.role));
 });
 
+const registerSupporters = asyncHandler(async (req, res) => {
+  res.json(await service.registerSupporters(req.body.emails));
+});
+
+const listSupporterInvites = asyncHandler(async (req, res) => {
+  res.json(await service.listSupporterInvites());
+});
+
+const deleteSupporterInvite = asyncHandler(async (req, res) => {
+  await service.deleteSupporterInvite(req.params.id);
+  res.status(204).end();
+});
+
 const listSupportTypes = asyncHandler(async (req, res) => {
   res.json(await service.listSupportTypes());
 });
@@ -21,4 +34,13 @@ const updateSupportType = asyncHandler(async (req, res) => {
   res.json(await service.updateSupportType(req.params.id, req.body));
 });
 
-module.exports = { listUsers, updateUserRole, listSupportTypes, createSupportType, updateSupportType };
+module.exports = {
+  listUsers,
+  updateUserRole,
+  registerSupporters,
+  listSupporterInvites,
+  deleteSupporterInvite,
+  listSupportTypes,
+  createSupportType,
+  updateSupportType,
+};
