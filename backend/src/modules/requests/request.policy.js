@@ -35,13 +35,27 @@ function canViewRequest(user, request) {
   return request.requesterId === user.id;
 }
 
-/** 연락처는 작성자, 담당 지원자, 관리자만 볼 수 있다. */
-function canSeeContactPhone(user, request) {
+/**
+ * 처리 이력·작업내역·첨부를 볼 수 있는 사람: 작성자, 담당 지원자, 관리자.
+ * 접수 가능 목록을 둘러보는 다른 지원자는 포함하지 않는다(이전 담당자·반려 사유가 드러나면 안 된다).
+ */
+function canSeeHistory(user, request) {
   return (
     user.role === 'ADMIN' ||
     request.requesterId === user.id ||
     (request.assigneeId != null && request.assigneeId === user.id)
   );
+}
+
+/**
+ * 연락처(전화번호)를 볼 수 있는 사람: 이력을 볼 수 있는 사람(작성자, 담당 지원자, 관리자)과,
+ * **접수 가능한(제출됨) 요청서를 둘러보는 지원자**. 지원자가 접수하기 전에 전화로 내용을 확인하거나
+ * 방문 일정을 조율할 수 있게 하려는 것이다. 다른 지원자가 접수하면 그 요청서는 더 이상 보이지 않으므로
+ * 연락처도 함께 가려진다.
+ */
+function canSeeContactPhone(user, request) {
+  if (canSeeHistory(user, request)) return true;
+  return user.role === 'SUPPORTER' && request.status === STATUS.SUBMITTED;
 }
 
 /** 작성자 본인이 제출됨 상태일 때만 수정·삭제할 수 있다. */
@@ -129,7 +143,12 @@ function toRequestView(request, viewer, { detail = false } = {}) {
     status: request.status,
     urgency: request.urgency,
     department: request.department,
+    // 착수일시부터 희망 완료일까지가 작업을 희망하는 기간이다.
+    interviewAt: request.interviewAt,
     desiredDate: toDateOnly(request.desiredDate),
+    // 연락 담당자 이름과 전화번호. 전화번호는 볼 수 있는 사람(canSeeContactPhone)에게만 나가고 나머지는 null 이다.
+    contactName: request.contactName,
+    contactPhone: canSeeContactPhone(viewer, request) ? request.contactPhone : null,
     supportType: request.supportType ? { id: request.supportType.id, name: request.supportType.name } : null,
     requester: request.requester ? { id: request.requester.id, name: request.requester.name } : null,
     assignee: request.assignee ? { id: request.assignee.id, name: request.assignee.name } : null,
@@ -144,17 +163,14 @@ function toRequestView(request, viewer, { detail = false } = {}) {
   };
   if (!detail) return summary;
 
-  const seesHistory = canSeeContactPhone(viewer, request);
+  const seesHistory = canSeeHistory(viewer, request);
 
   return {
     ...summary,
     content: request.content,
-    contactName: request.contactName,
-    contactPhone: seesHistory ? request.contactPhone : null,
-    interviewAt: request.interviewAt,
     updatedAt: request.updatedAt,
     completedAt: request.completedAt,
-    // 작업내역과 처리 이력은 연락처와 같은 범위(작성자, 담당 지원자, 관리자)에게만 보인다.
+    // 작업내역과 처리 이력은 작성자, 담당 지원자, 관리자에게만 보인다(연락처보다 좁은 범위).
     // 접수 가능 목록을 둘러보는 다른 지원자에게는 이전 담당자·반려 사유가 드러나지 않도록 비워 둔다.
     workLogs: seesHistory
       ? (request.workLogs ?? []).map((log) => ({
@@ -167,7 +183,7 @@ function toRequestView(request, viewer, { detail = false } = {}) {
         }))
       : [],
     events: seesHistory ? toEventViews(request.events) : [],
-    // 만족도: 연락처와 같은 범위(작성자, 담당 지원자, 관리자)에게만 보인다.
+    // 만족도: 작성자, 담당 지원자, 관리자에게만 보인다.
     rating:
       seesHistory && request.rating
         ? { score: request.rating.score, comment: request.rating.comment ?? null, createdAt: request.rating.createdAt }
@@ -185,6 +201,7 @@ function toRequestView(request, viewer, { detail = false } = {}) {
 module.exports = {
   buildListWhere,
   canViewRequest,
+  canSeeHistory,
   canSeeContactPhone,
   canEditRequest,
   canAcceptRequest,

@@ -84,6 +84,25 @@ async function getRequest(user, id) {
   return toRequestView(request, user, { detail: true });
 }
 
+/**
+ * 새 요청서 작성 화면의 기본값.
+ * - contactName: 로그인한 Google 계정의 이름.
+ * - department: 이 사람이 가장 최근에 작성한 요청서의 소속(처음이면 null).
+ *   Google 로그인으로는 이름과 이메일만 얻을 수 있고 부서 정보는 얻을 수 없어서, 한 번 입력한 소속을 기억해 둔다.
+ * 화면은 이 값을 채워 주기만 하고 작성자가 언제든 고칠 수 있다.
+ */
+async function getFormDefaults(user) {
+  const [profile, latest] = await Promise.all([
+    prisma.user.findUnique({ where: { id: user.id }, select: { name: true } }),
+    prisma.request.findFirst({
+      where: { requesterId: user.id },
+      orderBy: [{ createdAt: 'desc' }, { id: 'asc' }],
+      select: { department: true },
+    }),
+  ]);
+  return { contactName: profile?.name ?? '', department: latest?.department ?? null };
+}
+
 /** 요청서를 제출됨 상태로 만들고 SUBMIT 이력을 같은 트랜잭션에 남긴다. */
 async function createRequest(user, data) {
   await assertActiveSupportType(data.supportTypeId);
@@ -412,6 +431,7 @@ async function rateRequest(user, id, { score, comment }) {
 
 module.exports = {
   listRequests,
+  getFormDefaults,
   getRequest,
   createRequest,
   updateRequest,

@@ -34,6 +34,15 @@ export async function rateRequest(id, { score, comment }) {
   return data;
 }
 
+/**
+ * 새 요청서 작성 화면의 기본값. 담당자 이름은 로그인한 계정의 이름이고, 소속은 가장 최근에 작성한 요청서의 소속(처음이면 null)이다.
+ * @returns {Promise<{ contactName: string, department: string|null }>}
+ */
+export async function fetchFormDefaults() {
+  const { data } = await httpClient.get('/requests/form-defaults');
+  return data;
+}
+
 /** 지원자가 요청서를 접수한다. 다른 지원자가 먼저 접수했으면 409. */
 export async function acceptRequest(id) {
   const { data } = await httpClient.post(`/requests/${id}/accept`);

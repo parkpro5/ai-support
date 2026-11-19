@@ -235,7 +235,8 @@ describe('이력 공개 범위', () => {
     expect(asOther.status).toBe(200);
     expect(asOther.body.events).toEqual([]);
     expect(asOther.body.workLogs).toEqual([]);
-    expect(asOther.body.contactPhone).toBeNull();
+    // 연락처는 접수 가능한(제출됨) 요청서에서는 지원자에게 보이지만, 이력과 작업내역은 여전히 숨긴다.
+    expect(asOther.body.contactPhone).toBe('010-1234-5678');
 
     const asOwner = await call('get', `/requests/${target.id}`, requester);
     expect(asOwner.body.events.map((e) => e.type)).toEqual(['ACCEPT', 'CANCEL_ACCEPT']);

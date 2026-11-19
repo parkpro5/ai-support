@@ -8,7 +8,9 @@ import StatusBadge from '../components/requests/StatusBadge';
 import Button from '../components/common/Button';
 import ConfirmDialog from '../components/common/ConfirmDialog';
 import LinkButton from '../components/common/LinkButton';
+import PhoneLink from '../components/common/PhoneLink';
 import Spinner from '../components/common/Spinner';
+import WorkPeriod from '../components/common/WorkPeriod';
 
 const PAGE_SIZE = 20;
 
@@ -65,10 +67,18 @@ function RequestCard({ item, busy, onAccept, onCancelAccept, onAssign }) {
         <dd style={{ margin: 0 }}>
           {item.requester?.name ?? '-'} ({item.department})
         </dd>
-        <dt>희망 완료일</dt>
-        <dd style={{ margin: 0 }}>
-          {item.desiredDate} · 긴급도 {URGENCY_LABELS[item.urgency] ?? item.urgency}
-        </dd>
+        <dt>작업 희망 기간</dt>
+        <dd style={{ margin: 0 }}><WorkPeriod interviewAt={item.interviewAt} desiredDate={item.desiredDate} /></dd>
+        <dt>긴급도</dt>
+        <dd style={{ margin: 0 }}>{URGENCY_LABELS[item.urgency] ?? item.urgency}</dd>
+        {item.contactPhone && (
+          <>
+            <dt>연락처</dt>
+            <dd style={{ margin: 0 }}>
+              {item.contactName} · <PhoneLink phone={item.contactPhone} />
+            </dd>
+          </>
+        )}
         <dt>담당 지원자</dt>
         <dd style={{ margin: 0 }}>{item.assignee?.name ?? '미접수'}</dd>
       </dl>

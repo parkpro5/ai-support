@@ -5,6 +5,7 @@ import policy from './request.policy.js';
 const {
   buildListWhere,
   canViewRequest,
+  canSeeHistory,
   canSeeContactPhone,
   canEditRequest,
   canAcceptRequest,
@@ -94,7 +95,7 @@ describe('canViewRequest: 단건 조회 권한은 목록 범위와 같다', () =
 });
 
 describe('연락처 노출', () => {
-  it('작성자, 담당 지원자, 관리자만 볼 수 있다', () => {
+  it('접수된 요청서의 연락처는 작성자, 담당 지원자, 관리자만 볼 수 있다', () => {
     const accepted = makeRequest({ status: 'ACCEPTED', assigneeId: 'assignee' });
     expect(canSeeContactPhone(owner, accepted)).toBe(true);
     expect(canSeeContactPhone(assignee, accepted)).toBe(true);
@@ -103,23 +104,69 @@ describe('연락처 노출', () => {
     expect(canSeeContactPhone(other, accepted)).toBe(false);
   });
 
-  it('담당자가 없는 요청서에서 지원자는 연락처를 볼 수 없다', () => {
-    expect(canSeeContactPhone(supporter, makeRequest())).toBe(false);
+  it('접수 가능한(제출됨) 요청서의 연락처는 지원자 누구나 볼 수 있다(접수 전에 전화로 확인하도록)', () => {
+    const open = makeRequest({ status: 'SUBMITTED' });
+    expect(canSeeContactPhone(supporter, open)).toBe(true);
+    expect(canSeeContactPhone(assignee, open)).toBe(true);
   });
 
-  it('상세 응답에서 권한 없는 사용자에게는 contactPhone이 null이다', () => {
-    const request = makeRequest();
-    expect(toRequestView(request, supporter, { detail: true }).contactPhone).toBeNull();
-    expect(toRequestView(request, owner, { detail: true }).contactPhone).toBe('010-1234-5678');
+  it('제출됨이 아닌 요청서에서는 담당이 아닌 지원자가 연락처를 볼 수 없다', () => {
+    for (const status of ['ACCEPTED', 'FIRST_REVIEW', 'FINAL_REVIEW', 'REWORK', 'COMPLETED']) {
+      expect(canSeeContactPhone(supporter, makeRequest({ status, assigneeId: 'assignee' }))).toBe(false);
+    }
+  });
+
+  it('다른 요청자는 제출됨 요청서여도 연락처를 볼 수 없다', () => {
+    expect(canSeeContactPhone(other, makeRequest({ status: 'SUBMITTED' }))).toBe(false);
+  });
+
+  it('이력은 연락처보다 좁다: 제출됨 요청서를 둘러보는 지원자는 연락처는 보지만 이력은 못 본다', () => {
+    const open = makeRequest({ status: 'SUBMITTED' });
+    expect(canSeeContactPhone(supporter, open)).toBe(true);
+    expect(canSeeHistory(supporter, open)).toBe(false);
+    expect(canSeeHistory(owner, open)).toBe(true);
+    expect(canSeeHistory(admin, open)).toBe(true);
+  });
+
+  it('상세 응답: 제출됨 요청서의 연락처는 지원자에게 보이고, 접수된 요청서에서는 담당이 아닌 지원자에게 null이다', () => {
+    expect(toRequestView(makeRequest(), supporter, { detail: true }).contactPhone).toBe('010-1234-5678');
+    expect(toRequestView(makeRequest(), owner, { detail: true }).contactPhone).toBe('010-1234-5678');
+    const accepted = makeRequest({ status: 'ACCEPTED', assigneeId: 'assignee' });
+    expect(toRequestView(accepted, supporter, { detail: true }).contactPhone).toBeNull();
+    expect(toRequestView(accepted, assignee, { detail: true }).contactPhone).toBe('010-1234-5678');
+  });
+
+  it('목록 응답에서도 같은 규칙이다: 제출됨이면 지원자에게 보이고, 담당이 아닌 지원자·다른 요청자에게는 null', () => {
+    expect(toRequestView(makeRequest({ status: 'SUBMITTED' }), supporter).contactPhone).toBe('010-1234-5678');
+    const accepted = makeRequest({ status: 'ACCEPTED', assigneeId: 'assignee' });
+    expect(toRequestView(accepted, assignee).contactPhone).toBe('010-1234-5678');
+    expect(toRequestView(accepted, admin).contactPhone).toBe('010-1234-5678');
+    expect(toRequestView(accepted, supporter).contactPhone).toBeNull();
+    expect(toRequestView(accepted, other).contactPhone).toBeNull();
+  });
+
+  it('상세 응답: 제출됨 요청서를 보는 지원자에게도 이력·작업내역·첨부는 비어 있다', () => {
+    const open = makeRequest({
+      status: 'SUBMITTED',
+      events: [{ id: 'e1', type: 'ACCEPT', reason: null, createdAt: new Date(1), actor: { id: 'x', name: '이전 담당자' } }],
+      workLogs: [{ id: 'w1', round: 1, content: '비공개', minutes: 5, submittedAt: new Date(2), author: { id: 'a', name: '이전 담당자' } }],
+      attachments: [],
+    });
+    const view = toRequestView(open, supporter, { detail: true });
+    expect(view.contactPhone).toBe('010-1234-5678');
+    expect(view.events).toEqual([]);
+    expect(view.workLogs).toEqual([]);
+    expect(view.attachments).toEqual([]);
   });
 });
 
 describe('toRequestView', () => {
-  it('목록용 응답에는 본문과 연락처가 들어 있지 않다', () => {
+  it('목록용 응답에는 본문이 없고, 착수일시와 연락 담당자·전화번호가 들어 있다', () => {
     const view = toRequestView(makeRequest(), owner);
     expect(view).not.toHaveProperty('content');
-    expect(view).not.toHaveProperty('contactPhone');
-    expect(view).not.toHaveProperty('contactName');
+    expect(view.contactName).toBe('홍길동');
+    expect(view.contactPhone).toBe('010-1234-5678');
+    expect(view.interviewAt).toEqual(new Date('2026-11-20T01:00:00.000Z'));
     expect(view.desiredDate).toBe('2026-12-01');
     expect(view.supportType).toEqual({ id: 't1', name: '업무 자동화' });
   });

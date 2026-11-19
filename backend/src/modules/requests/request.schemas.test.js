@@ -90,7 +90,7 @@ describe('createRequestSchema', () => {
     expect(errorsOf(createRequestSchema, validBody({ desiredDate: '' }))).toHaveProperty('desiredDate');
   });
 
-  it('착수(인터뷰) 일시가 날짜가 아니면 거부', () => {
+  it('착수일시가 날짜가 아니면 거부', () => {
     expect(errorsOf(createRequestSchema, validBody({ interviewAt: 'not-a-date' }))).toHaveProperty('interviewAt');
     expect(errorsOf(createRequestSchema, validBody({ interviewAt: '' }))).toHaveProperty('interviewAt');
   });

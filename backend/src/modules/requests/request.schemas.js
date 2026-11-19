@@ -20,7 +20,7 @@ function requiredText(label, max) {
 }
 
 const dateTimeField = z.coerce.date({
-  errorMap: () => ({ message: '착수(인터뷰) 일시를 올바르게 입력하세요' }),
+  errorMap: () => ({ message: '착수일시를 올바르게 입력하세요' }),
 });
 
 // DB의 @db.Date 에 맞춰 'YYYY-MM-DD' 만 받는다. 존재하지 않는 날짜(2026-02-30)는 거부한다.

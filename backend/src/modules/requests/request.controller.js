@@ -5,6 +5,10 @@ const list = asyncHandler(async (req, res) => {
   res.json(await service.listRequests(req.user, req.query));
 });
 
+const formDefaults = asyncHandler(async (req, res) => {
+  res.json(await service.getFormDefaults(req.user));
+});
+
 const get = asyncHandler(async (req, res) => {
   res.json(await service.getRequest(req.user, req.params.id));
 });
@@ -52,6 +56,7 @@ const assign = asyncHandler(async (req, res) => {
 
 module.exports = {
   list,
+  formDefaults,
   get,
   create,
   update,

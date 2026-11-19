@@ -10,7 +10,9 @@ import WorkLogForm from '../components/requests/WorkLogForm';
 import WorkLogList from '../components/requests/WorkLogList';
 import { formatDateTime } from '../utils/time';
 import { latestRejection } from '../utils/history';
+import PhoneLink from '../components/common/PhoneLink';
 import Spinner from '../components/common/Spinner';
+import WorkPeriod from '../components/common/WorkPeriod';
 
 const LIST_PATH = '/requests?scope=mine';
 
@@ -152,12 +154,17 @@ export default function RequestWorkPage() {
           <dt>담당자</dt>
           <dd style={{ margin: 0 }}>
             {item.contactName}
-            {item.contactPhone ? ` · ${item.contactPhone}` : ''}
+            {item.contactPhone && (
+              <>
+                {' · '}
+                <PhoneLink phone={item.contactPhone} />
+              </>
+            )}
           </dd>
-          <dt>희망 완료일</dt>
-          <dd style={{ margin: 0 }}>
-            {item.desiredDate} · 긴급도 {URGENCY_LABELS[item.urgency] ?? item.urgency}
-          </dd>
+          <dt>작업 희망 기간</dt>
+          <dd style={{ margin: 0 }}><WorkPeriod interviewAt={item.interviewAt} desiredDate={item.desiredDate} /></dd>
+          <dt>긴급도</dt>
+          <dd style={{ margin: 0 }}>{URGENCY_LABELS[item.urgency] ?? item.urgency}</dd>
         </dl>
         <p style={{ margin: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{item.content}</p>
         {item.attachments.some((file) => file.kind === 'request') && (

@@ -3,6 +3,7 @@ import { Link, Navigate, useLocation, useNavigate, useParams } from 'react-route
 import {
   createRequest,
   deleteRequest,
+  fetchFormDefaults,
   fetchRequest,
   fetchSupportTypes,
   parseApiError,
@@ -38,7 +39,7 @@ const REQUIRED_MESSAGES = {
   department: '소속 항목을 입력해 주세요',
   contactName: '담당자 항목을 입력해 주세요',
   contactPhone: '연락처 항목을 입력해 주세요',
-  interviewAt: '착수(인터뷰) 일시를 입력하세요',
+  interviewAt: '착수일시를 입력하세요',
   desiredDate: '희망 완료일을 입력하세요',
 };
 
@@ -85,7 +86,7 @@ function validateRequired(form) {
     if (!String(form[field] ?? '').trim()) errors[field] = message;
   }
   if (form.interviewAt && Number.isNaN(new Date(form.interviewAt).getTime())) {
-    errors.interviewAt = '착수(인터뷰) 일시를 올바르게 입력하세요';
+    errors.interviewAt = '착수일시를 올바르게 입력하세요';
   }
   return errors;
 }
@@ -118,10 +119,20 @@ export default function RequestEditorPage() {
 
     const types = fetchSupportTypes();
     const request = isEdit ? fetchRequest(id) : Promise.resolve(null);
+    // 새 요청서의 기본값(이름·소속). 못 받아도 작성은 계속할 수 있으므로 실패는 무시한다.
+    const defaults = isEdit ? Promise.resolve(null) : fetchFormDefaults().catch(() => null);
 
-    Promise.all([types, request])
-      .then(([typeList, existing]) => {
+    Promise.all([types, request, defaults])
+      .then(([typeList, existing, formDefaults]) => {
         if (cancelled) return;
+        if (!isEdit) {
+          // 담당자는 로그인한 계정의 이름, 소속은 최근에 작성한 요청서의 소속으로 채운다. 작성자가 고칠 수 있다.
+          setForm((prev) => ({
+            ...prev,
+            contactName: formDefaults?.contactName || user?.name || '',
+            department: formDefaults?.department ?? '',
+          }));
+        }
         // 이미 사용 중지된 유형으로 만든 요청서는 그 유형이 선택 목록에 없어 빈 칸으로 보이므로, 현재 유형을 목록에 포함한다.
         const current = existing?.supportType;
         setSupportTypes(current && !typeList.some((t) => t.id === current.id) ? [...typeList, current] : typeList);
@@ -269,11 +280,21 @@ export default function RequestEditorPage() {
           )}
         </FormField>
 
-        <FormField label="소속" required error={fieldErrors.department}>
+        <FormField
+          label="소속"
+          required
+          error={fieldErrors.department}
+          hint={isEdit ? undefined : '최근에 작성한 요청서의 소속이 채워집니다. 다른 부서의 일이면 고쳐 주세요.'}
+        >
           {(a11y) => <input type="text" maxLength={100} {...a11y} {...control('department')} />}
         </FormField>
 
-        <FormField label="담당자" required error={fieldErrors.contactName}>
+        <FormField
+          label="담당자"
+          required
+          error={fieldErrors.contactName}
+          hint={isEdit ? undefined : '로그인한 계정의 이름이 채워집니다. 다른 분이 담당이면 그 이름으로 고쳐 주세요.'}
+        >
           {(a11y) => <input type="text" maxLength={50} {...a11y} {...control('contactName')} />}
         </FormField>
 
@@ -281,12 +302,17 @@ export default function RequestEditorPage() {
           label="연락처"
           required
           error={fieldErrors.contactPhone}
-          hint="작성자, 담당 지원자, 관리자에게만 보입니다."
+          hint="접수 전에는 모든 지원자가 볼 수 있습니다(전화로 내용을 확인하거나 방문 일정을 조율하기 위해서입니다). 접수된 뒤에는 작성자, 담당 지원자, 관리자에게만 보입니다."
         >
           {(a11y) => <input type="tel" maxLength={30} {...a11y} {...control('contactPhone')} />}
         </FormField>
 
-        <FormField label="착수(인터뷰) 일시" required error={fieldErrors.interviewAt}>
+        <FormField
+          label="착수일시"
+          required
+          error={fieldErrors.interviewAt}
+          hint="착수일시부터 희망 완료일까지가 작업을 희망하는 기간입니다."
+        >
           {(a11y) => <input type="datetime-local" {...a11y} {...control('interviewAt')} />}
         </FormField>
 

@@ -9,6 +9,7 @@ import Button from '../components/common/Button';
 import ConfirmDialog from '../components/common/ConfirmDialog';
 import FormField from '../components/common/FormField';
 import Spinner from '../components/common/Spinner';
+import WorkPeriod from '../components/common/WorkPeriod';
 
 const LIST_PATH = '/requests';
 const MAX_REASON_LENGTH = 2000;
@@ -166,10 +167,10 @@ export default function RequestReviewPage({ stage = 'first' }) {
           </dd>
           <dt>담당 지원자</dt>
           <dd style={{ margin: 0 }}>{item.assignee?.name ?? '-'}</dd>
-          <dt>희망 완료일</dt>
-          <dd style={{ margin: 0 }}>
-            {item.desiredDate} · 긴급도 {URGENCY_LABELS[item.urgency] ?? item.urgency}
-          </dd>
+          <dt>작업 희망 기간</dt>
+          <dd style={{ margin: 0 }}><WorkPeriod interviewAt={item.interviewAt} desiredDate={item.desiredDate} /></dd>
+          <dt>긴급도</dt>
+          <dd style={{ margin: 0 }}>{URGENCY_LABELS[item.urgency] ?? item.urgency}</dd>
         </dl>
         <p style={{ margin: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{item.content}</p>
         {item.attachments.some((file) => file.kind === 'request') && (

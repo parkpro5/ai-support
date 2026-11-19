@@ -22,6 +22,8 @@ router.use(authenticate);
 router.get('/', validate(listRequestsQuerySchema, 'query'), controller.list);
 // 지원자는 요청서를 작성하지 않는다. 관리자는 작성할 수 있다.
 router.post('/', requireRole(ROLES.REQUESTER, ROLES.ADMIN), validate(createRequestSchema), controller.create);
+// 새 요청서 작성 화면의 기본값(이름·소속). '/:id' 보다 앞에 둬야 id 로 해석되지 않는다.
+router.get('/form-defaults', requireRole(ROLES.REQUESTER, ROLES.ADMIN), controller.formDefaults);
 router.get('/:id', controller.get);
 router.patch('/:id', validate(updateRequestSchema), controller.update);
 router.delete('/:id', controller.remove);
