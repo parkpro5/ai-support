@@ -18,8 +18,11 @@ export default defineConfig({
         background_color: '#f5f6f8',
         theme_color: '#4f46e5',
         icons: [
-          { src: '/icon.svg', sizes: '192x192', type: 'image/svg+xml' },
-          { src: '/icon.svg', sizes: '512x512', type: 'image/svg+xml' },
+          { src: '/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
+          { src: '/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
+          // 안드로이드가 원형 등으로 잘라도 로고가 잘리지 않도록 배경을 가장자리까지 채운 버전
+          { src: '/icon-maskable-192.png', sizes: '192x192', type: 'image/png', purpose: 'maskable' },
+          { src: '/icon-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
         ],
       },
       devOptions: {
