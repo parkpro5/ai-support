@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>서비스 이용약관 · AI 현장지원 (ai-support)</title>
+<meta name="description" content="AI 현장지원 서비스의 서비스 이용약관">
+<link rel="icon" type="image/png" href="/favicon.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<style>
+  :root{--main:#1f4e9c;--main-d:#163a76;--bg:#f5f8fd;--line:#dbe3f0;--text:#1f2937;--sub:#5b6575}
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;font-family:"Pretendard","Malgun Gothic","Apple SD Gothic Neo",sans-serif;color:var(--text);line-height:1.7;background:#fff}
+  a{color:var(--main)}
+  .wrap{max-width:960px;margin:0 auto;padding:0 20px}
+  header{position:sticky;top:0;background:#fff;border-bottom:1px solid var(--line);z-index:10}
+  header .wrap{display:flex;align-items:center;justify-content:space-between;height:60px}
+  .logo{font-weight:800;color:var(--main);font-size:1.1rem;text-decoration:none}
+  .btn{display:inline-block;background:var(--main);color:#fff;padding:10px 22px;border-radius:8px;text-decoration:none;font-weight:600;border:0;cursor:pointer;font-size:1rem}
+  .btn:hover{background:var(--main-d)}
+  .btn.ghost{background:#fff;color:var(--main);border:1px solid var(--main)}
+  .hero{background:linear-gradient(135deg,#eaf1fc,#f8fbff);padding:80px 0 70px;text-align:center}
+  .hero h1{font-size:2.2rem;margin:0 0 14px;color:var(--main-d)}
+  .hero p{font-size:1.1rem;color:var(--sub);margin:0 auto 28px;max-width:620px}
+  .hero .btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+  section{padding:56px 0}
+  section.alt{background:var(--bg)}
+  h2{font-size:1.5rem;margin:0 0 8px;color:var(--main-d)}
+  .lead{color:var(--sub);margin:0 0 28px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px}
+  .card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:22px}
+  .card h3{margin:0 0 6px;font-size:1.05rem}
+  .card p{margin:0;color:var(--sub);font-size:.95rem}
+  .ico{font-size:1.8rem;margin-bottom:6px}
+  .steps{counter-reset:s;display:grid;gap:12px;padding:0;list-style:none}
+  .steps li{counter-increment:s;background:#fff;border:1px solid var(--line);border-radius:12px;padding:16px 18px 16px 62px;position:relative}
+  .steps li::before{content:counter(s);position:absolute;left:16px;top:50%;transform:translateY(-50%);width:32px;height:32px;border-radius:50%;background:var(--main);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700}
+  .steps b{display:block}
+  .steps span{color:var(--sub);font-size:.93rem}
+  .info{background:#fff;border:1px solid var(--line);border-radius:12px;padding:6px 20px}
+  .info dl{margin:0}
+  .info div{display:flex;gap:16px;padding:12px 0;border-bottom:1px solid var(--line)}
+  .info div:last-child{border:0}
+  .info dt{width:110px;font-weight:700;color:var(--main-d);flex-shrink:0}
+  .info dd{margin:0}
+  footer{background:#1b2536;color:#b8c2d3;padding:32px 0;font-size:.9rem}
+  footer a{color:#fff;margin-right:18px;font-weight:600;cursor:pointer;text-decoration:none}
+  footer a:hover{text-decoration:underline}
+  footer p{margin:10px 0 0}
+  @media(max-width:600px){.hero h1{font-size:1.7rem}.info div{flex-direction:column;gap:2px}}
+  .doc{padding:36px 0 56px}
+  .doc h1{font-size:1.7rem;margin:0 0 6px;color:var(--main-d)}
+  .doc .meta{color:var(--sub);font-size:.9rem;margin:0 0 22px}
+  .doc h3{font-size:1.05rem;margin:28px 0 6px;color:var(--main-d)}
+  .doc ul,.doc ol{padding-left:22px;margin:6px 0}
+  .doc table{border-collapse:collapse;width:100%;font-size:.92rem;margin:8px 0}
+  .doc th,.doc td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  .doc th{background:#eef3fb}
+  .doc .note{background:#fff8e6;border:1px solid #f0d58a;border-radius:8px;padding:10px 14px;font-size:.88rem;margin-bottom:12px}
+  .toplinks{font-size:.9rem;margin:0 0 18px}
+  .toplinks a{margin-right:14px}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <a class="logo" href="/home.html">AI 현장지원</a>
+    <a class="btn" href="https://ai-support-lovat.vercel.app" target="_blank" rel="noopener">서비스 바로가기</a>
+  </div>
+</header>
+
+<main>
+  <div class="wrap doc">
+    <p class="toplinks"><a href="/home.html">&larr; 홈페이지</a><a href="/privacy.html">개인정보처리방침 보기 &rarr;</a></p>
+    <h1>서비스 이용약관</h1>
+          <h3>제1조 (목적)</h3>
+    <p>이 약관은 서울과학기술대학교 총무과(이하 "학교")이 제공하는 AI 현장지원 서비스(이하 "서비스")의 이용과 관련하여 학교와 이용자 간의 권리, 의무 및 책임사항을 정함을 목적으로 합니다.</p>
+
+    <h3>제2조 (용어의 정의)</h3>
+    <ul>
+      <li>"이용자"란 이 약관에 따라 서비스를 이용하는 요청자(교직원), 지원자(근로학생) 및 관리자를 말합니다.</li>
+      <li>"요청자"란 지원요청서를 작성·제출한 이용자를 말합니다.</li>
+      <li>"지원자"란 요청을 접수하여 현장 지원을 수행하는 근로학생을 말합니다.</li>
+      <li>"관리자"란 서비스를 운영·관리하는 학교 담당자를 말합니다.</li>
+    </ul>
+
+    <h3>제3조 (약관의 효력 및 변경)</h3>
+    <ul>
+      <li>이 약관은 서비스 화면에 게시함으로써 효력이 발생합니다.</li>
+      <li>학교는 필요한 경우 약관을 변경할 수 있으며, 변경 시 시행일 이전에 서비스 화면에 공지합니다.</li>
+    </ul>
+
+    <h3>제4조 (서비스의 내용)</h3>
+    <ul>
+      <li>지원요청서 작성·제출 및 처리 현황 조회</li>
+      <li>근로학생의 요청 접수, 연락 및 현장 지원, 지원 내용 기록</li>
+      <li>요청자의 1차 확인 및 정보전산원의 최종 확인</li>
+      <li>그 밖에 학교가 정하는 서비스</li>
+    </ul>
+    <p>서비스는 AI 활용 방법의 안내와 지원을 제공하며, 업무 결과물의 정확성이나 업무 수행의 최종 책임은 이용자에게 있습니다.</p>
+
+    <h3>제5조 (이용 자격 및 운영 기간)</h3>
+    <ul>
+      <li>서비스는 학교 구글 계정(@g.seoultech.ac.kr)으로 로그인한 교직원과 근로학생이 이용할 수 있습니다.</li>
+      <li>서비스는 AI 심화교육 종료 후 ~ 2026년 12월 말까지 운영하며, 운영 사정에 따라 변경·연장될 수 있습니다.</li>
+    </ul>
+
+    <h3>제6조 (이용자의 의무)</h3>
+    <ul>
+      <li>사실에 근거하여 요청서를 작성하고, 연락처 등 정보를 정확하게 입력해야 합니다.</li>
+      <li>계정을 타인과 공유하거나 타인의 계정을 도용해서는 안 됩니다.</li>
+      <li>주민등록번호 등 고유식별정보, 학생 성적·개인 식별 자료 등 민감한 정보를 요청서나 첨부파일에 포함해서는 안 됩니다.</li>
+      <li>지원자에게 업무 범위를 벗어난 요구를 하거나, 지원자의 권익을 침해하는 행위를 해서는 안 됩니다.</li>
+      <li>서비스의 정상적인 운영을 방해하거나 보안을 해치는 행위를 해서는 안 됩니다.</li>
+      <li>관련 법령, 학교의 규정 및 정보보안 지침을 준수해야 합니다.</li>
+    </ul>
+
+    <h3>제7조 (지원자의 의무)</h3>
+    <ul>
+      <li>지원 과정에서 알게 된 업무 정보와 개인정보를 지원 목적 외에 사용하거나 외부에 유출해서는 안 됩니다.</li>
+      <li>지원 내용을 사실대로 기록해야 합니다.</li>
+    </ul>
+
+    <h3>제8조 (첨부파일 및 게시 내용)</h3>
+    <ul>
+      <li>이용자가 올린 자료에 대한 권리와 책임은 이용자에게 있습니다.</li>
+      <li>첨부파일은 지정된 형식(pdf, hwp, hwpx, docx, xlsx, pptx, png, jpg, jpeg), 파일당 10MB 이하, 최대 10개까지 올릴 수 있습니다.</li>
+      <li>학교는 서비스 운영 목적 범위에서만 해당 자료를 이용합니다.</li>
+    </ul>
+
+    <h3>제9조 (서비스 이용의 제한 및 중지)</h3>
+    <ul>
+      <li>학교는 이용자가 약관을 위반하거나 서비스 운영을 방해하는 경우 이용을 제한할 수 있습니다.</li>
+      <li>시스템 점검, 장애, 천재지변 등 불가피한 사유가 있는 경우 서비스 제공을 일시 중지할 수 있습니다.</li>
+    </ul>
+
+    <h3>제10조 (책임의 제한)</h3>
+    <ul>
+      <li>학교는 천재지변, 시스템 장애 등 불가항력으로 인한 서비스 중단에 대해 책임을 지지 않습니다.</li>
+      <li>학교는 이용자의 귀책사유로 발생한 손해에 대해 책임을 지지 않습니다.</li>
+      <li>서비스를 통한 지원 결과의 적용 여부와 그에 따른 업무상 결과는 이용자가 판단하고 책임집니다.</li>
+    </ul>
+
+    <h3>제11조 (개인정보 보호)</h3>
+    <p>학교는 이용자의 개인정보를 「개인정보 보호법」 및 서비스의 개인정보처리방침에 따라 처리합니다.</p>
+
+    <h3>제12조 (문의 및 분쟁 해결)</h3>
+    <ul>
+      <li>서비스 관련 문의: 총무과 02-970-6095 / 07824@seoultech.ac.kr</li>
+      <li>서비스 이용과 관련한 분쟁은 관련 법령과 학교 규정에 따라 해결합니다.</li>
+    </ul>
+
+    <h3>부칙</h3>
+    <p>이 약관은 2026년 11월 23일부터 시행합니다.</p>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <a href="/privacy.html">개인정보처리방침</a>
+    <a href="/terms.html">서비스 이용약관</a>
+    <a href="/home.html">홈페이지</a>
+    <p>서울과학기술대학교 총무과 · AI 현장지원 서비스</p>
+    <p>© 2026 Seoul National University of Science and Technology. All rights reserved.</p>
+  </div>
+</footer>
+
+</body>
+</html>
