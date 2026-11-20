@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI 현장지원 (ai-support) · 서울과학기술대학교</title>
+<meta name="description" content="교직원 AI 현장지원 요청 서비스. 요청서를 제출하면 근로학생이 현장을 방문해 AI 활용을 지원합니다.">
+<link rel="icon" type="image/png" href="/favicon.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<style>
+  :root{--main:#1f4e9c;--main-d:#163a76;--bg:#f5f8fd;--line:#dbe3f0;--text:#1f2937;--sub:#5b6575}
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;font-family:"Pretendard","Malgun Gothic","Apple SD Gothic Neo",sans-serif;color:var(--text);line-height:1.7;background:#fff}
+  a{color:var(--main)}
+  .wrap{max-width:960px;margin:0 auto;padding:0 20px}
+  header{position:sticky;top:0;background:#fff;border-bottom:1px solid var(--line);z-index:10}
+  header .wrap{display:flex;align-items:center;justify-content:space-between;height:60px}
+  .logo{font-weight:800;color:var(--main);font-size:1.1rem;text-decoration:none}
+  .btn{display:inline-block;background:var(--main);color:#fff;padding:10px 22px;border-radius:8px;text-decoration:none;font-weight:600;border:0;cursor:pointer;font-size:1rem}
+  .btn:hover{background:var(--main-d)}
+  .btn.ghost{background:#fff;color:var(--main);border:1px solid var(--main)}
+  .hero{background:linear-gradient(135deg,#eaf1fc,#f8fbff);padding:80px 0 70px;text-align:center}
+  .hero h1{font-size:2.2rem;margin:0 0 14px;color:var(--main-d)}
+  .hero p{font-size:1.1rem;color:var(--sub);margin:0 auto 28px;max-width:620px}
+  .hero .btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+  section{padding:56px 0}
+  section.alt{background:var(--bg)}
+  h2{font-size:1.5rem;margin:0 0 8px;color:var(--main-d)}
+  .lead{color:var(--sub);margin:0 0 28px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px}
+  .card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:22px}
+  .card h3{margin:0 0 6px;font-size:1.05rem}
+  .card p{margin:0;color:var(--sub);font-size:.95rem}
+  .ico{font-size:1.8rem;margin-bottom:6px}
+  .steps{counter-reset:s;display:grid;gap:12px;padding:0;list-style:none}
+  .steps li{counter-increment:s;background:#fff;border:1px solid var(--line);border-radius:12px;padding:16px 18px 16px 62px;position:relative}
+  .steps li::before{content:counter(s);position:absolute;left:16px;top:50%;transform:translateY(-50%);width:32px;height:32px;border-radius:50%;background:var(--main);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700}
+  .steps b{display:block}
+  .steps span{color:var(--sub);font-size:.93rem}
+  .info{background:#fff;border:1px solid var(--line);border-radius:12px;padding:6px 20px}
+  .info dl{margin:0}
+  .info div{display:flex;gap:16px;padding:12px 0;border-bottom:1px solid var(--line)}
+  .info div:last-child{border:0}
+  .info dt{width:110px;font-weight:700;color:var(--main-d);flex-shrink:0}
+  .info dd{margin:0}
+  footer{background:#1b2536;color:#b8c2d3;padding:32px 0;font-size:.9rem}
+  footer a{color:#fff;margin-right:18px;font-weight:600;cursor:pointer;text-decoration:none}
+  footer a:hover{text-decoration:underline}
+  footer p{margin:10px 0 0}
+  /* modal */
+  .modal{position:fixed;inset:0;background:rgba(15,23,42,.55);display:none;align-items:center;justify-content:center;z-index:100;padding:16px}
+  .modal.open{display:flex}
+  .panel{background:#fff;border-radius:14px;max-width:780px;width:100%;max-height:88vh;display:flex;flex-direction:column;overflow:hidden}
+  .panel header{position:static;display:flex;align-items:center;justify-content:space-between;padding:16px 22px;border-bottom:1px solid var(--line);height:auto}
+  .panel header h2{margin:0;font-size:1.2rem}
+  .x{background:none;border:0;font-size:1.6rem;cursor:pointer;color:var(--sub);line-height:1}
+  .body{padding:20px 26px 28px;overflow-y:auto;font-size:.95rem}
+  .body h3{font-size:1.02rem;margin:24px 0 6px;color:var(--main-d)}
+  .body ul,.body ol{padding-left:22px;margin:6px 0}
+  .body table{border-collapse:collapse;width:100%;font-size:.9rem;margin:8px 0}
+  .body th,.body td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  .body th{background:#eef3fb}
+  .note{background:#fff8e6;border:1px solid #f0d58a;border-radius:8px;padding:10px 14px;font-size:.88rem;margin-bottom:12px}
+  @media(max-width:600px){.hero h1{font-size:1.7rem}.info div{flex-direction:column;gap:2px}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <a class="logo" href="#top">AI 현장지원</a>
+    <a class="btn" href="https://ai-support-lovat.vercel.app" target="_blank" rel="noopener">서비스 바로가기</a>
+  </div>
+</header>
+
+<main id="top">
+  <div class="hero">
+    <div class="wrap">
+      <h1>AI 활용, 현장에서 직접 도와드립니다</h1>
+      <p>교육 이후 업무 현장에서 AI를 쓰다 막히면 온라인으로 요청서를 제출하세요. 근로학생이 찾아가 함께 해결합니다.</p>
+      <div class="btns">
+        <a class="btn" href="https://ai-support-lovat.vercel.app" target="_blank" rel="noopener">지원 요청하기</a>
+        <a class="btn ghost" href="#about">서비스 알아보기</a>
+      </div>
+    </div>
+  </div>
+
+  <section id="about">
+    <div class="wrap">
+      <h2>서비스 소개</h2>
+      <p class="lead">ai-support는 서울과학기술대학교 교직원의 AI 업무 활용을 현장에서 지원하는 요청·접수·관리 서비스입니다.</p>
+      <div class="grid">
+        <div class="card"><div class="ico">📝</div><h3>간편한 요청서 작성</h3><p>지원 유형, 요청 내용, 희망 일정, 긴급도를 입력하고 필요한 자료를 첨부해 제출합니다.</p></div>
+        <div class="card"><div class="ico">🧑‍🎓</div><h3>근로학생 현장 지원</h3><p>접수한 근로학생이 연락 후 직접 방문해 업무 자동화·문서 작성·데이터 정리 등을 함께 해결합니다.</p></div>
+        <div class="card"><div class="ico">✅</div><h3>투명한 처리 확인</h3><p>지원 내용은 기록되며, 요청자의 1차 확인과 총무과의 최종 확인으로 마무리됩니다.</p></div>
+        <div class="card"><div class="ico">🔒</div><h3>학교 계정 로그인</h3><p>학교 구글 계정(@g.seoultech.ac.kr)으로만 로그인할 수 있어 안전합니다.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="alt" id="flow">
+    <div class="wrap">
+      <h2>이용 절차</h2>
+      <p class="lead">요청부터 완료까지 다섯 단계로 진행됩니다.</p>
+      <ol class="steps">
+        <li><b>로그인</b><span>학교 구글 계정으로 로그인합니다.</span></li>
+        <li><b>지원요청서 작성·제출</b><span>어떤 업무에서 어떤 도움이 필요한지 작성합니다.</span></li>
+        <li><b>근로학생 접수·연락</b><span>근로학생이 요청을 접수하고 연락해 방문 일정을 조율합니다.</span></li>
+        <li><b>현장 지원 및 내용 입력</b><span>현장에서 지원한 뒤 지원 내용을 서비스에 기록합니다.</span></li>
+        <li><b>확인 완료</b><span>요청 직원이 1차 확인하고, 총무과가 최종 확인합니다.</span></li>
+      </ol>
+    </div>
+  </section>
+
+  <section id="info">
+    <div class="wrap">
+      <h2>이용 안내</h2>
+      <p class="lead">&nbsp;</p>
+      <div class="info"><dl>
+        <div><dt>이용 대상</dt><dd>서울과학기술대학교 교직원(요청자, AI 심화교육 수료자 우선), 근로학생(지원자)</dd></div>
+        <div><dt>운영 기간</dt><dd>심화교육 종료 후 ~ 12월 말</dd></div>
+        <div><dt>로그인</dt><dd>학교 구글 계정 (@g.seoultech.ac.kr)</dd></div>
+        <div><dt>지원 유형</dt><dd>업무 자동화 / 문서 작성 / 데이터 정리 / 교육·컨설팅 / 기타</dd></div>
+        <div><dt>운영 부서</dt><dd>서울과학기술대학교 총무과</dd></div>
+      </dl></div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <a data-open="privacy" href="#privacy">개인정보처리방침</a>
+    <a data-open="terms" href="#terms">서비스 이용약관</a>
+    <p>서울과학기술대학교 총무과 · AI 현장지원 서비스</p>
+    <p>© 2026 Seoul National University of Science and Technology. All rights reserved.</p>
+  </div>
+</footer>
+
+<!-- 개인정보처리방침 -->
+<div class="modal" id="m-privacy" role="dialog" aria-modal="true" aria-labelledby="t-privacy">
+  <div class="panel">
+    <header><h2 id="t-privacy">개인정보처리방침</h2><button class="x" aria-label="닫기">&times;</button></header>
+    <div class="body">
+      <p>서울과학기술대학교 총무과(이하 "학교")은 「개인정보 보호법」 등 관련 법령에 따라 AI 현장지원 서비스(이하 "서비스") 이용자의 개인정보를 보호하고 관련 고충을 신속히 처리하기 위해 다음과 같이 개인정보처리방침을 수립·공개합니다.</p>
+
+      <h3>제1조 (개인정보의 처리 목적)</h3>
+      <ul>
+        <li>이용자 확인 및 로그인 관리 (학교 구글 계정 인증)</li>
+        <li>AI 현장지원 요청서의 접수, 지원자 배정, 일정 조율 및 연락</li>
+        <li>지원 내용의 기록 관리, 요청자 확인 및 최종 확인 절차 수행</li>
+        <li>서비스 운영 현황 파악 및 개선</li>
+      </ul>
+
+      <h3>제2조 (처리하는 개인정보 항목)</h3>
+      <table>
+        <tr><th>구분</th><th>항목</th></tr>
+        <tr><td>로그인 시 (필수)</td><td>이름, 학교 구글 계정 이메일, 프로필 식별자</td></tr>
+        <tr><td>요청서 작성 시 (필수)</td><td>소속, 담당자명, 연락처, 요청 유형·제목·내용, 희망 일정, 긴급도</td></tr>
+        <tr><td>요청서 작성 시 (선택)</td><td>첨부파일 (이용자가 직접 올린 자료)</td></tr>
+        <tr><td>자동 수집</td><td>접속 일시, 서비스 이용 기록, 접속 기기·브라우저 정보</td></tr>
+      </table>
+      <p>이용자는 첨부파일에 주민등록번호 등 고유식별정보, 학생 성적 등 민감한 개인정보가 포함되지 않도록 주의해야 합니다.</p>
+
+      <h3>제3조 (개인정보의 처리 및 보유 기간)</h3>
+      <ul>
+        <li>수집한 개인정보의 보유 기간은 2026년 11월 23일부터 2027년 1월 30일(서비스 운영 종료 후 30일)까지이며, 보유 기간이 끝나면 지체 없이 파기합니다.</li>
+        <li>다만 관련 법령에 따라 보존이 필요한 경우 해당 기간 동안 보관합니다.</li>
+      </ul>
+
+      <h3>제4조 (개인정보의 제3자 제공)</h3>
+      <p>학교는 이용자의 개인정보를 제1조의 목적 범위 내에서만 처리하며, 이용자의 동의 또는 법령상 근거가 없는 한 제3자에게 제공하지 않습니다. 다만 요청서에 적힌 연락처는 지원 일정 조율을 위해 다음과 같이 공개됩니다.</p>
+      <ul>
+        <li>접수 전: 서비스에 등록된 지원자(근로학생)에게 공개</li>
+        <li>접수 후: 작성자, 담당 지원자, 관리자에게만 공개</li>
+      </ul>
+
+      <h3>제5조 (개인정보 처리의 위탁 및 국외 이전)</h3>
+      <p>서비스 제공을 위해 다음 외부 서비스를 이용합니다.</p>
+      <table>
+        <tr><th>수탁자(서비스)</th><th>위탁 업무</th></tr>
+        <tr><td>Vercel Inc.</td><td>웹 서비스 호스팅</td></tr>
+        <tr><td>Supabase Inc.</td><td>데이터베이스 및 파일 저장</td></tr>
+      </table>
+      <p>위 서비스는 국외 서버에서 운영될 수 있으며, 이전되는 정보·시기·방법 및 보유 기간은 위 항목과 같습니다.</p>
+
+      <h3>제6조 (개인정보의 파기 절차 및 방법)</h3>
+      <ul>
+        <li>보유 기간이 지났거나 처리 목적이 달성된 개인정보는 지체 없이 파기합니다.</li>
+        <li>전자적 파일은 복구할 수 없는 방법으로 영구 삭제하고, 출력물은 분쇄 또는 소각합니다.</li>
+      </ul>
+
+      <h3>제7조 (정보주체의 권리와 행사 방법)</h3>
+      <p>이용자는 언제든지 자신의 개인정보에 대한 열람, 정정, 삭제, 처리정지를 요구할 수 있으며, 아래 개인정보 보호책임자에게 서면, 전자우편 등으로 요청하면 지체 없이 조치합니다.</p>
+
+      <h3>제8조 (개인정보의 안전성 확보 조치)</h3>
+      <ul>
+        <li>학교 구글 계정 기반 인증 및 역할별 접근 권한 관리(요청자·지원자·관리자)</li>
+        <li>연락처 등 개인정보의 열람 범위 제한</li>
+        <li>전송 구간 암호화(HTTPS) 및 접근 기록 관리</li>
+        <li>담당자 최소화 및 정기적인 점검</li>
+      </ul>
+
+      <h3>제9조 (쿠키 등 자동 수집 장치)</h3>
+      <p>서비스는 로그인 상태 유지를 위해 세션 쿠키를 사용합니다. 이용자는 브라우저 설정으로 쿠키 저장을 거부할 수 있으나, 이 경우 로그인이 필요한 서비스 이용이 제한될 수 있습니다.</p>
+
+      <h3>제10조 (개인정보 보호책임자 및 문의처)</h3>
+      <table>
+        <tr><th>구분</th><th>내용</th></tr>
+        <tr><td>개인정보 보호책임자</td><td>사무국장</td></tr>
+        <tr><td>담당 부서</td><td>총무과</td></tr>
+        <tr><td>연락처</td><td>02-970-6095 / 07824@seoultech.ac.kr</td></tr>
+      </table>
+      <p>기타 개인정보 침해에 대한 신고·상담은 아래 기관에 문의할 수 있습니다.</p>
+      <ul>
+        <li>개인정보침해 신고센터: privacy.kisa.or.kr (국번없이 118)</li>
+        <li>개인정보 분쟁조정위원회: kopico.go.kr (1833-6972)</li>
+      </ul>
+
+      <h3>제11조 (방침의 변경)</h3>
+      <p>이 방침은 법령이나 서비스 변경에 따라 개정될 수 있으며, 변경 시 서비스 화면을 통해 공지합니다.</p>
+      <p><b>시행일:</b> 2026년 11월 23일</p>
+    </div>
+  </div>
+</div>
+
+<!-- 서비스 이용약관 -->
+<div class="modal" id="m-terms" role="dialog" aria-modal="true" aria-labelledby="t-terms">
+  <div class="panel">
+    <header><h2 id="t-terms">서비스 이용약관</h2><button class="x" aria-label="닫기">&times;</button></header>
+    <div class="body">
+
+      <h3>제1조 (목적)</h3>
+      <p>이 약관은 서울과학기술대학교 총무과(이하 "학교")이 제공하는 AI 현장지원 서비스(이하 "서비스")의 이용과 관련하여 학교와 이용자 간의 권리, 의무 및 책임사항을 정함을 목적으로 합니다.</p>
+
+      <h3>제2조 (용어의 정의)</h3>
+      <ul>
+        <li>"이용자"란 이 약관에 따라 서비스를 이용하는 요청자(교직원), 지원자(근로학생) 및 관리자를 말합니다.</li>
+        <li>"요청자"란 지원요청서를 작성·제출한 이용자를 말합니다.</li>
+        <li>"지원자"란 요청을 접수하여 현장 지원을 수행하는 근로학생을 말합니다.</li>
+        <li>"관리자"란 서비스를 운영·관리하는 학교 담당자를 말합니다.</li>
+      </ul>
+
+      <h3>제3조 (약관의 효력 및 변경)</h3>
+      <ul>
+        <li>이 약관은 서비스 화면에 게시함으로써 효력이 발생합니다.</li>
+        <li>학교는 필요한 경우 약관을 변경할 수 있으며, 변경 시 시행일 이전에 서비스 화면에 공지합니다.</li>
+      </ul>
+
+      <h3>제4조 (서비스의 내용)</h3>
+      <ul>
+        <li>지원요청서 작성·제출 및 처리 현황 조회</li>
+        <li>근로학생의 요청 접수, 연락 및 현장 지원, 지원 내용 기록</li>
+        <li>요청자의 1차 확인 및 총무과의 최종 확인</li>
+        <li>그 밖에 학교가 정하는 서비스</li>
+      </ul>
+      <p>서비스는 AI 활용 방법의 안내와 지원을 제공하며, 업무 결과물의 정확성이나 업무 수행의 최종 책임은 이용자에게 있습니다.</p>
+
+      <h3>제5조 (이용 자격 및 운영 기간)</h3>
+      <ul>
+        <li>서비스는 학교 구글 계정(@g.seoultech.ac.kr)으로 로그인한 교직원과 근로학생이 이용할 수 있습니다.</li>
+        <li>서비스는 AI 심화교육 종료 후 ~ 2026년 12월 말까지 운영하며, 운영 사정에 따라 변경·연장될 수 있습니다.</li>
+      </ul>
+
+      <h3>제6조 (이용자의 의무)</h3>
+      <ul>
+        <li>사실에 근거하여 요청서를 작성하고, 연락처 등 정보를 정확하게 입력해야 합니다.</li>
+        <li>계정을 타인과 공유하거나 타인의 계정을 도용해서는 안 됩니다.</li>
+        <li>주민등록번호 등 고유식별정보, 학생 성적·개인 식별 자료 등 민감한 정보를 요청서나 첨부파일에 포함해서는 안 됩니다.</li>
+        <li>지원자에게 업무 범위를 벗어난 요구를 하거나, 지원자의 권익을 침해하는 행위를 해서는 안 됩니다.</li>
+        <li>서비스의 정상적인 운영을 방해하거나 보안을 해치는 행위를 해서는 안 됩니다.</li>
+        <li>관련 법령, 학교의 규정 및 정보보안 지침을 준수해야 합니다.</li>
+      </ul>
+
+      <h3>제7조 (지원자의 의무)</h3>
+      <ul>
+        <li>지원 과정에서 알게 된 업무 정보와 개인정보를 지원 목적 외에 사용하거나 외부에 유출해서는 안 됩니다.</li>
+        <li>지원 내용을 사실대로 기록해야 합니다.</li>
+      </ul>
+
+      <h3>제8조 (첨부파일 및 게시 내용)</h3>
+      <ul>
+        <li>이용자가 올린 자료에 대한 권리와 책임은 이용자에게 있습니다.</li>
+        <li>첨부파일은 지정된 형식(pdf, hwp, hwpx, docx, xlsx, pptx, png, jpg, jpeg), 파일당 10MB 이하, 최대 10개까지 올릴 수 있습니다.</li>
+        <li>학교는 서비스 운영 목적 범위에서만 해당 자료를 이용합니다.</li>
+      </ul>
+
+      <h3>제9조 (서비스 이용의 제한 및 중지)</h3>
+      <ul>
+        <li>학교는 이용자가 약관을 위반하거나 서비스 운영을 방해하는 경우 이용을 제한할 수 있습니다.</li>
+        <li>시스템 점검, 장애, 천재지변 등 불가피한 사유가 있는 경우 서비스 제공을 일시 중지할 수 있습니다.</li>
+      </ul>
+
+      <h3>제10조 (책임의 제한)</h3>
+      <ul>
+        <li>학교는 천재지변, 시스템 장애 등 불가항력으로 인한 서비스 중단에 대해 책임을 지지 않습니다.</li>
+        <li>학교는 이용자의 귀책사유로 발생한 손해에 대해 책임을 지지 않습니다.</li>
+        <li>서비스를 통한 지원 결과의 적용 여부와 그에 따른 업무상 결과는 이용자가 판단하고 책임집니다.</li>
+      </ul>
+
+      <h3>제11조 (개인정보 보호)</h3>
+      <p>학교는 이용자의 개인정보를 「개인정보 보호법」 및 서비스의 개인정보처리방침에 따라 처리합니다.</p>
+
+      <h3>제12조 (문의 및 분쟁 해결)</h3>
+      <ul>
+        <li>서비스 관련 문의: 총무과 02-970-6095 / 07824@seoultech.ac.kr</li>
+        <li>서비스 이용과 관련한 분쟁은 관련 법령과 학교 규정에 따라 해결합니다.</li>
+      </ul>
+
+      <h3>부칙</h3>
+      <p>이 약관은 2026년 11월 23일부터 시행합니다.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var ids=['privacy','terms'];
+  function open(id){
+    close();
+    var m=document.getElementById('m-'+id);
+    if(!m)return;
+    m.classList.add('open');
+    m.querySelector('.body').scrollTop=0;
+    document.body.style.overflow='hidden';
+  }
+  function close(){
+    ids.forEach(function(i){document.getElementById('m-'+i).classList.remove('open')});
+    document.body.style.overflow='';
+  }
+  function route(){
+    var h=location.hash.replace('#','');
+    if(ids.indexOf(h)>-1)open(h);else close();
+  }
+  document.querySelectorAll('[data-open]').forEach(function(a){
+    a.addEventListener('click',function(e){e.preventDefault();location.hash=a.getAttribute('data-open')});
+  });
+  document.querySelectorAll('.modal').forEach(function(m){
+    m.addEventListener('click',function(e){
+      if(e.target===m||e.target.classList.contains('x')){history.pushState('',document.title,location.pathname+location.search);close();}
+    });
+  });
+  document.addEventListener('keydown',function(e){
+    if(e.key==='Escape'){history.pushState('',document.title,location.pathname+location.search);close();}
+  });
+  window.addEventListener('hashchange',route);
+  route();
+})();
+</script>
+</body>
+</html>

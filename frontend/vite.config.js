@@ -9,6 +9,8 @@ export default defineConfig({
       strategies: 'injectManifest',
       srcDir: 'src',
       filename: 'sw.js',
+      // 안내 홈페이지(/home.html)는 앱이 아니므로 오프라인 캐시에 넣지 않는다.
+      injectManifest: { globIgnores: ['home.html'] },
       manifest: {
         name: 'AI 전환 지원요청',
         short_name: 'AI지원요청',
