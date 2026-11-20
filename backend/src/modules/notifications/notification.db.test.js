@@ -130,7 +130,7 @@ describe('구독 등록·해제 API', () => {
 });
 
 describe('알림 대상 (FR-9)', () => {
-  it('요청서를 제출하면 구독한 모든 지원자의 모든 기기로만 간다', async () => {
+  it('요청서를 제출하면 구독한 모든 지원자와 모든 관리자의 모든 기기로만 간다(요청자 본인 제외)', async () => {
     const res = await call('post', '/requests', requester, {
       supportTypeId: supportType.id,
       title: '새 요청서 제목',
@@ -143,7 +143,7 @@ describe('알림 대상 (FR-9)', () => {
     });
 
     expect(res.status).toBe(201);
-    expect(endpointsSent()).toEqual([dev.supporterA1, dev.supporterA2, dev.supporterB].sort());
+    expect(endpointsSent()).toEqual([dev.supporterA1, dev.supporterA2, dev.supporterB, dev.admin, dev.otherAdmin].sort());
     expect(sent[0].payload).toEqual({ title: '새 지원요청이 올라왔습니다', body: '새 요청서 제목', url: '/requests' });
   });
 
@@ -162,7 +162,24 @@ describe('알림 대상 (FR-9)', () => {
       desiredDate: '2026-12-01',
     });
 
-    expect(endpointsSent()).toEqual([dev.supporterA1]);
+    expect(endpointsSent()).toEqual([dev.supporterA1, dev.admin, dev.otherAdmin].sort());
+  });
+
+  it('관리자가 직접 요청서를 제출하면 본인에게는 가지 않고 다른 관리자와 지원자에게만 간다', async () => {
+    const res = await call('post', '/requests', admin, {
+      supportTypeId: supportType.id,
+      title: '관리자가 올린 요청서',
+      content: '내용',
+      department: '부서',
+      contactName: '이름',
+      contactPhone: '010-1234-5678',
+      interviewAt: '2026-11-20T10:00:00.000Z',
+      desiredDate: '2026-12-01',
+    });
+
+    expect(res.status).toBe(201);
+    expect(endpointsSent()).toEqual([dev.supporterA1, dev.supporterA2, dev.supporterB, dev.otherAdmin].sort());
+    expect(endpointsSent()).not.toContain(dev.admin);
   });
 
   it('구독한 기기가 하나도 없어도 본 처리는 정상이다', async () => {
@@ -178,6 +195,23 @@ describe('알림 대상 (FR-9)', () => {
       desiredDate: '2026-12-01',
     });
     expect(res.status).toBe(201);
+    expect(sent).toEqual([]);
+  });
+
+  it('지원자가 요청서를 접수하면 요청서 작성자에게만 간다', async () => {
+    const target = await newRequest({ status: 'SUBMITTED' });
+    const res = await call('post', `/requests/${target.id}/accept`, supporterA);
+
+    expect(res.status).toBe(200);
+    expect(endpointsSent()).toEqual([dev.requester]);
+    expect(sent[0].payload).toEqual({ title: '요청서가 접수되었습니다', body: target.title, url: `/requests/${target.id}` });
+  });
+
+  it('접수를 취소하면 알림은 가지 않는다', async () => {
+    const target = await newRequest({ status: 'ACCEPTED', assignee: supporterA });
+    const res = await call('post', `/requests/${target.id}/cancel-accept`, supporterA);
+
+    expect(res.status).toBe(200);
     expect(sent).toEqual([]);
   });
 
@@ -235,13 +269,6 @@ describe('알림 대상 (FR-9)', () => {
     expect(res.status).toBe(200);
     expect(endpointsSent()).toEqual([dev.supporterB]);
     expect(sent[0].payload.url).toBe(`/requests/${target.id}/work`);
-  });
-
-  it('접수와 접수 취소는 알리지 않는다', async () => {
-    const target = await newRequest();
-    await call('post', `/requests/${target.id}/accept`, supporterA);
-    await call('post', `/requests/${target.id}/cancel-accept`, supporterA);
-    expect(sent).toEqual([]);
   });
 
   it('관리자가 직접 작성한 요청서를 1차 승인하면 본인 기기는 빼고 다른 관리자에게만 간다', async () => {

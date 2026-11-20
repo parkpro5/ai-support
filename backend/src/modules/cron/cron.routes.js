@@ -18,8 +18,8 @@ router.post(
   '/reminders',
   requireCronSecret,
   asyncHandler(async (req, res) => {
-    await runOnce();
-    res.json({ ok: true });
+    const result = await runOnce();
+    res.json({ ok: true, ...result });
   })
 );
 

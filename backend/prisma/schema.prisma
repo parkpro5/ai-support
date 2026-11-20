@@ -95,6 +95,8 @@ model Request {
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
   completedAt   DateTime?
+  /// 희망 완료일 하루 전 알림을 보낸 시각. 한 번만 보내려고 쓴다. 희망 완료일을 고치면 다시 비운다.
+  dueReminderSentAt DateTime?
 
   workLogs    WorkLog[]
   events      RequestEvent[]

@@ -8,7 +8,8 @@ const request = { id: 'req-1', title: '월간 보고서 자동화', requesterId:
 
 describe('buildNotification: 누구에게 무엇을 알리는가', () => {
   it.each([
-    ['SUBMIT', { roles: ['SUPPORTER'] }, '/requests'],
+    ['SUBMIT', { roles: ['SUPPORTER', 'ADMIN'] }, '/requests'],
+    ['ACCEPT', { userIds: ['owner'] }, '/requests/req-1'],
     ['ASSIGN', { userIds: ['assignee'] }, '/requests/req-1/work'],
     ['WORK_SUBMIT', { userIds: ['owner'] }, '/requests/req-1/review'],
     ['RESUBMIT', { userIds: ['owner'] }, '/requests/req-1/review'],
@@ -25,10 +26,16 @@ describe('buildNotification: 누구에게 무엇을 알리는가', () => {
     expect(result.payload.title.length).toBeGreaterThan(0);
   });
 
-  it('알림을 보내지 않는 이력은 null이다(접수, 접수 취소, 1차 승인 전 단계 등)', () => {
-    for (const type of ['ACCEPT', 'CANCEL_ACCEPT', 'UNKNOWN', 'toString', '']) {
+  it('알림을 보내지 않는 이력은 null이다(접수 취소 등)', () => {
+    for (const type of ['CANCEL_ACCEPT', 'UNKNOWN', 'toString', '']) {
       expect(buildNotification(type, request), type).toBeNull();
     }
+  });
+
+  it('접수 알림은 담당 지원자가 아니라 요청서 작성자에게 간다', () => {
+    const result = buildNotification('ACCEPT', request);
+    expect(result.audience).toEqual({ userIds: ['owner'] });
+    expect(result.payload.title).toContain('접수');
   });
 
   it('반려 알림은 모두 같은 문구로 재작업 화면을 연다', () => {
@@ -88,5 +95,33 @@ describe('resolveRecipients', () => {
   it('대상이 없으면 빈 목록', () => {
     expect(resolveRecipients({}, [], 'x')).toEqual([]);
     expect(resolveRecipients({ userIds: ['x'] }, [], 'x')).toEqual([]);
+  });
+});
+
+describe('buildNotification: 희망 완료일 하루 전(DUE_SOON)은 지금 처리할 차례인 사람에게만 간다', () => {
+  const due = (status, overrides = {}) => buildNotification('DUE_SOON', { ...request, status, ...overrides });
+
+  it.each([
+    ['SUBMITTED', { roles: ['SUPPORTER', 'ADMIN'] }, '/requests'],
+    ['ACCEPTED', { userIds: ['assignee'] }, '/requests/req-1/work'],
+    ['REWORK', { userIds: ['assignee'] }, '/requests/req-1/work'],
+    ['FIRST_REVIEW', { userIds: ['owner'] }, '/requests/req-1/review'],
+    ['FINAL_REVIEW', { roles: ['ADMIN'] }, '/requests/req-1/final-review'],
+  ])('%s', (status, audience, url) => {
+    const result = due(status);
+    expect(result.audience).toEqual(audience);
+    expect(result.payload.url).toBe(url);
+    expect(result.payload.body).toBe('월간 보고서 자동화');
+    expect(result.payload.title).toContain('내일이 희망 완료일');
+  });
+
+  it('완료된 요청서와 알 수 없는 상태는 보내지 않는다', () => {
+    for (const status of ['COMPLETED', 'UNKNOWN', 'toString', 'constructor', '', undefined]) {
+      expect(due(status), String(status)).toBeNull();
+    }
+  });
+
+  it('담당자가 비어 있으면 작업 단계의 알림은 받을 사람이 없다', () => {
+    expect(due('ACCEPTED', { assigneeId: null }).audience).toEqual({ userIds: [] });
   });
 });

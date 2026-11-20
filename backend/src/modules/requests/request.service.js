@@ -129,9 +129,11 @@ async function updateRequest(user, id, data) {
   }
 
   // 검사와 갱신 사이에 접수되는 경우를 막기 위해 갱신 조건에도 상태를 건다.
+  // 희망 완료일을 바꾸면 "하루 전 알림"을 새 날짜에 맞춰 다시 보낼 수 있도록 보낸 기록을 비운다.
+  const changes = data.desiredDate !== undefined ? { ...data, dueReminderSentAt: null } : data;
   const { count } = await prisma.request.updateMany({
     where: { id, requesterId: user.id, status: STATUS.SUBMITTED },
-    data,
+    data: changes,
   });
   if (count !== 1) {
     throw new ApiError(409, '이미 접수되어 수정할 수 없습니다');
@@ -240,6 +242,7 @@ async function acceptRequest(user, id) {
       data: { requestId: id, actorId: user.id, type: next.eventType },
     });
   });
+  await notify(next.eventType, { ...request, assigneeId: user.id }, user.id);
   return getRequest(user, id);
 }
 
