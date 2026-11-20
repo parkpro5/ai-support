@@ -49,7 +49,8 @@
   footer a:hover{text-decoration:underline}
   footer p{margin:10px 0 0}
   @media(max-width:600px){.hero h1{font-size:1.7rem}.info div{flex-direction:column;gap:2px}}
-  .doc{padding:36px 0 56px}
+  /* .wrap의 좌우 여백(20px)을 지우지 않도록 위아래만 지정한다. */
+  .doc{padding-top:36px;padding-bottom:56px;word-break:keep-all;overflow-wrap:break-word}
   .doc h1{font-size:1.7rem;margin:0 0 6px;color:var(--main-d)}
   .doc .meta{color:var(--sub);font-size:.9rem;margin:0 0 22px}
   .doc h3{font-size:1.05rem;margin:28px 0 6px;color:var(--main-d)}
@@ -148,7 +149,7 @@
 
     <h3>제12조 (문의 및 분쟁 해결)</h3>
     <ul>
-      <li>서비스 관련 문의: 총무과 02-970-6095 / 07824@seoultech.ac.kr</li>
+      <li>서비스 관련 문의: 정보전산원 02-970-9052 / kjpark@g.seoultech.ac.kr</li>
       <li>서비스 이용과 관련한 분쟁은 관련 법령과 학교 규정에 따라 해결합니다.</li>
     </ul>
 
